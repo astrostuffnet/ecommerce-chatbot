@@ -4,12 +4,10 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
   
-  // Handle preflight request
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }
 
-  // Only allow POST requests
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -17,7 +15,6 @@ export default async function handler(req, res) {
   try {
     const { message } = req.body;
     
-    // Check if message exists
     if (!message) {
       return res.status(400).json({ error: 'Message is required' });
     }
@@ -25,12 +22,16 @@ export default async function handler(req, res) {
     // Get API key from environment
     const apiKey = process.env.OPENROUTER_API_KEY;
     
+    // Debug: Check if API key exists
     if (!apiKey) {
-      console.error('OpenRouter API key is missing');
-      return res.status(500).json({ error: 'Server configuration error - API key missing' });
+      return res.status(500).json({ 
+        error: 'API KEY MISSING: OpenRouter API key not found in environment variables. Please add OPENROUTER_API_KEY to Vercel environment variables.' 
+      });
     }
 
-    console.log('Making request to OpenRouter with message:', message.substring(0, 50));
+    // Debug: Show first few characters of API key (for verification)
+    console.log('API Key exists, starts with:', apiKey.substring(0, 10) + '...');
+    console.log('API Key length:', apiKey.length);
 
     // Make request to OpenRouter
     const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -39,47 +40,51 @@ export default async function handler(req, res) {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${apiKey}`,
         'HTTP-Referer': 'https://ecommerce-chatbot.vercel.app',
-        'X-Title': 'Ecommerce Chatbot'
+        'X-Title': 'Ecommerce AI Chatbot'
       },
       body: JSON.stringify({
-        model: 'openai/gpt-3.5-turbo',
+        model: 'google/gemini-pro',  // Changed to free model
         messages: [
-          {
-            role: 'system',
-            content: 'You are a helpful ecommerce customer service assistant. Help users with orders, products, shipping, returns, and general questions.'
-          },
           {
             role: 'user',
             content: message
           }
         ],
-        max_tokens: 500,
-        temperature: 0.7
+        max_tokens: 500
       })
     });
 
-    // Check if the response is OK
+    console.log('OpenRouter response status:', response.status);
+
+    // Get the full error response
+    const responseText = await response.text();
+    console.log('OpenRouter response:', responseText);
+
     if (!response.ok) {
-      const errorText = await response.text();
-      console.error('OpenRouter API error:', response.status, errorText);
+      let errorDetails = `Status: ${response.status}`;
+      try {
+        const errorData = JSON.parse(responseText);
+        errorDetails += ` - ${JSON.stringify(errorData)}`;
+      } catch (e) {
+        errorDetails += ` - ${responseText}`;
+      }
+      
       return res.status(500).json({ 
-        error: 'AI service error',
-        details: `Status: ${response.status}`
+        error: `OPENROUTER API ERROR: ${errorDetails}` 
       });
     }
 
-    // Parse the response
-    const data = await response.json();
+    // Parse the successful response
+    const data = JSON.parse(responseText);
     
-    // Check if we got a valid response
     if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-      console.error('Invalid response format:', data);
-      return res.status(500).json({ error: 'Invalid response from AI service' });
+      return res.status(500).json({ 
+        error: 'INVALID RESPONSE FORMAT: ' + JSON.stringify(data) 
+      });
     }
 
     const reply = data.choices[0].message.content;
 
-    // Send success response
     res.status(200).json({
       reply: reply,
       model: data.model
@@ -88,8 +93,7 @@ export default async function handler(req, res) {
   } catch (error) {
     console.error('Server error:', error);
     res.status(500).json({ 
-      error: 'Internal server error',
-      details: error.message
+      error: 'SERVER ERROR: ' + error.message 
     });
   }
 }
