@@ -1,54 +1,56 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Ecommerce Chatbot</title>
-    <style>
-        body { margin: 0; padding: 20px; background: #f0f0f0; font-family: Arial; }
-        .chat-container { max-width: 800px; margin: 0 auto; background: white; border-radius: 10px; padding: 20px; }
-        .messages { height: 400px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; }
-        .input-area { display: flex; gap: 10px; }
-        input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 5px; }
-        button { padding: 10px 20px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
-    </style>
-</head>
-<body>
-    <div class="chat-container">
-        <h2>Ecommerce AI Assistant</h2>
-        <div class="messages" id="messages"></div>
-        <div class="input-area">
-            <input type="text" id="input" placeholder="Ask about products, orders, shipping...">
-            <button onclick="sendMessage()">Send</button>
-        </div>
-    </div>
-
-    <script>
-        async function sendMessage() {
-            const input = document.getElementById('input');
-            const messages = document.getElementById('messages');
-            const message = input.value.trim();
+<script>
+    async function sendMessage() {
+        const input = document.getElementById('input');
+        const messages = document.getElementById('messages');
+        const message = input.value.trim();
+        
+        if (!message) return;
+        
+        // Add user message
+        messages.innerHTML += `<div style="text-align: right; margin: 10px 0; padding: 10px; background: #007bff; color: white; border-radius: 10px; display: inline-block; max-width: 80%; margin-left: 20%;"><strong>You:</strong> ${message}</div>`;
+        input.value = '';
+        
+        // Add typing indicator
+        messages.innerHTML += `<div id="typing" style="color: #666; font-style: italic;">AI is typing...</div>`;
+        messages.scrollTop = messages.scrollHeight;
+        
+        try {
+            const response = await fetch('/api/chat', {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json' 
+                },
+                body: JSON.stringify({ message: message })
+            });
             
-            if (!message) return;
+            // Remove typing indicator
+            document.getElementById('typing').remove();
             
-            messages.innerHTML += `<div><strong>You:</strong> ${message}</div>`;
-            input.value = '';
-            
-            try {
-                const response = await fetch('/api/chat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message })
-                });
-                
-                const data = await response.json();
-                messages.innerHTML += `<div><strong>Bot:</strong> ${data.reply}</div>`;
-            } catch (error) {
-                messages.innerHTML += `<div><strong>Bot:</strong> Sorry, error occurred.</div>`;
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
             }
+            
+            const data = await response.json();
+            
+            if (data.error) {
+                messages.innerHTML += `<div style="text-align: left; margin: 10px 0; padding: 10px; background: #ff4444; color: white; border-radius: 10px; display: inline-block; max-width: 80%;"><strong>Error:</strong> ${data.error}</div>`;
+            } else {
+                messages.innerHTML += `<div style="text-align: left; margin: 10px 0; padding: 10px; background: #f1f1f1; border-radius: 10px; display: inline-block; max-width: 80%;"><strong>Bot:</strong> ${data.reply}</div>`;
+            }
+            
+        } catch (error) {
+            // Remove typing indicator
+            const typingElem = document.getElementById('typing');
+            if (typingElem) typingElem.remove();
+            
+            messages.innerHTML += `<div style="text-align: left; margin: 10px 0; padding: 10px; background: #ff4444; color: white; border-radius: 10px; display: inline-block; max-width: 80%;"><strong>Error:</strong> ${error.message}</div>`;
         }
         
-        document.getElementById('input').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') sendMessage();
-        });
-    </script>
-</body>
-</html>
+        messages.scrollTop = messages.scrollHeight;
+    }
+    
+    // Allow Enter key to send message
+    document.getElementById('input').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') sendMessage();
+    });
+</script>
