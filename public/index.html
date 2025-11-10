@@ -10,84 +10,20 @@
 <body>
     <div class="chat-container">
         <div class="chat-header">
-            <div class="header-content">
-                <div class="bot-avatar">
-                    <i class="fas fa-robot"></i>
-                </div>
-                <div class="header-info">
-                    <h1>Ecommerce Assistant</h1>
-                    <p>AI-Powered Customer Support</p>
-                </div>
-                <div class="status-indicator">
-                    <span class="status-dot"></span>
-                    <span class="status-text">Online</span>
-                </div>
-            </div>
+            <h1>Ecommerce Assistant</h1>
+            <div class="status">Online</div>
         </div>
-
+        
         <div class="chat-messages" id="chatMessages">
             <div class="message bot-message">
-                <div class="message-avatar">
-                    <i class="fas fa-robot"></i>
-                </div>
-                <div class="message-content">
-                    <p>Hello! I'm your Ecommerce AI Assistant. I can help you with:</p>
-                    <ul class="quick-options">
-                        <li>🛍️ Product recommendations</li>
-                        <li>📦 Order tracking</li>
-                        <li>🔄 Returns & exchanges</li>
-                        <li>💳 Billing questions</li>
-                    </ul>
-                    <p>How can I help you today?</p>
-                </div>
-                <div class="message-time" id="currentTime"></div>
+                <p>Hello! I'm your Ecommerce AI Assistant. How can I help you today?</p>
             </div>
         </div>
-
-        <div class="quick-actions" id="quickActions">
-            <button class="quick-btn" data-action="tracking">
-                <i class="fas fa-shipping-fast"></i>
-                Track Order
-            </button>
-            <button class="quick-btn" data-action="products">
-                <i class="fas fa-box-open"></i>
-                Product Help
-            </button>
-            <button class="quick-btn" data-action="returns">
-                <i class="fas fa-exchange-alt"></i>
-                Returns
-            </button>
-            <button class="quick-btn" data-action="billing">
-                <i class="fas fa-credit-card"></i>
-                Billing Help
-            </button>
+        
+        <div class="chat-input">
+            <input type="text" id="messageInput" placeholder="Type your message...">
+            <button id="sendButton">Send</button>
         </div>
-
-        <div class="chat-input-container">
-            <div class="input-wrapper">
-                <div class="input-group">
-                    <textarea 
-                        id="messageInput" 
-                        placeholder="Type your message about orders, products, shipping, or returns..."
-                        rows="1"
-                    ></textarea>
-                    <div class="input-actions">
-                        <button id="sendButton" class="send-button">
-                            <i class="fas fa-paper-plane"></i>
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="typing-indicator" id="typingIndicator">
-        <div class="typing-dots">
-            <div class="dot"></div>
-            <div class="dot"></div>
-            <div class="dot"></div>
-        </div>
-        <span>AI Assistant is typing...</span>
     </div>
 
     <script src="script.js"></script>

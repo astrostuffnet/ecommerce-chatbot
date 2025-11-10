@@ -2,10 +2,7 @@ export default async function handler(request, response) {
     response.setHeader('Access-Control-Allow-Credentials', true);
     response.setHeader('Access-Control-Allow-Origin', '*');
     response.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
-    response.setHeader(
-        'Access-Control-Allow-Headers',
-        'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
-    );
+    response.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
 
     if (request.method === 'OPTIONS') {
         response.status(200).end();
@@ -34,7 +31,7 @@ export default async function handler(request, response) {
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${apiKey}`,
-                'HTTP-Referer': 'https://your-app.vercel.app',
+                'HTTP-Referer': 'https://ecommerce-chatbot.vercel.app',
                 'X-Title': 'Ecommerce AI Chatbot'
             },
             body: JSON.stringify({
@@ -42,16 +39,7 @@ export default async function handler(request, response) {
                 messages: [
                     {
                         role: 'system',
-                        content: `You are an AI assistant for an ecommerce website. You help customers with:
-- Order tracking and status
-- Product information and recommendations  
-- Return and exchange policies
-- Shipping information and costs
-- Payment and billing questions
-- Technical support
-- General customer service
-
-Be professional, helpful, and friendly. Provide clear, concise information. If you don't know something, suggest contacting customer support.`
+                        content: 'You are an AI assistant for an ecommerce website. Help customers with orders, products, shipping, and returns.'
                     },
                     {
                         role: 'user',
@@ -64,27 +52,19 @@ Be professional, helpful, and friendly. Provide clear, concise information. If y
         });
 
         if (!aiResponse.ok) {
-            throw new Error(`OpenRouter API error: ${aiResponse.status}`);
+            throw new Error('AI service error');
         }
 
         const data = await aiResponse.json();
-        
-        if (!data.choices || !data.choices[0] || !data.choices[0].message) {
-            throw new Error('Invalid response from AI service');
-        }
-
         const reply = data.choices[0].message.content;
 
         response.status(200).json({
-            reply: reply,
-            usage: data.usage
+            reply: reply
         });
 
     } catch (error) {
-        console.error('Error in chat API:', error);
         response.status(500).json({ 
-            error: 'Failed to process message',
-            details: error.message
+            error: 'Failed to process message'
         });
     }
 }
